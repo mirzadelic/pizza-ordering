@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+
+  db:
+    image: postgres:12.1
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=pizza_ordering
+    volumes:
+     - ./tmp-docker-vol/postgresql:/var/lib/postgresql
+
+  api:
+    build: ./api
+    image: api
+    volumes:
+      - ./api:/usr/src/app/
+      - ./tmp-docker-vol/api-media:/usr/src/app/api/media
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=api.settings.docker
+      - ENV=docker
+    # command: bash
+    # tty: true
+    command: bash -c "pip install -r requirements.txt && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      - db
